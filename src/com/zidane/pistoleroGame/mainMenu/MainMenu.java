@@ -30,7 +30,9 @@ public class MainMenu extends Pane {
     private List<Pair<String, Runnable>> menuData = Arrays.asList(
             new Pair<String, Runnable>("Start", () -> {
                 GameApp.game_scene = new Scene(new GameScreen());
-                GameApp.window.setScene(GameApp.game_scene);}),
+                GameApp.window.setScene(GameApp.game_scene);
+                GameApp.window.sizeToScene();
+            }),
             new Pair<String, Runnable>("Guide", () -> {}),
             new Pair<String, Runnable>("Game Options", () -> {}),
             new Pair<String, Runnable>("Score", () -> {GameApp.window.setScene(GameApp.end_scene);}),

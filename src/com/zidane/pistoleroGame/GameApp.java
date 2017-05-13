@@ -26,7 +26,7 @@ public class GameApp extends Application{
 
         window.setTitle("Pistolero");
         window.setScene(menu_scene);
-        window.setResizable(false);
+        //window.setResizable(false);
         window.sizeToScene();
         window.show();
     }

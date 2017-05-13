@@ -7,13 +7,13 @@ import javafx.animation.AnimationTimer;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
+import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import javafx.util.Pair;
@@ -32,8 +32,10 @@ public class GameScreen extends Pane {
 
 
     private Stopwatch stopwatch;
+    private Pane gamePane = new Pane();
     private Score score;
     private HBox menuBox = new HBox(Consts.GAME_MENU_SPACING);
+
     private List<Pair<String, Runnable>> gameMenuData = Arrays.asList(
             new Pair<String, Runnable>("Pause", () -> {}),
             new Pair<String, Runnable>("Exit to Menu", () -> {
@@ -45,9 +47,11 @@ public class GameScreen extends Pane {
         addStopwatch();
         addMenu();
         addScore();
-
-        getChildren().add(menuBox);
+        addGamePane();
         startAnimation();
+
+        player = new Player();
+        player.setVelocity(new Point2D(1, 0));
 
         AnimationTimer timer = new AnimationTimer() {
             @Override
@@ -58,8 +62,58 @@ public class GameScreen extends Pane {
         timer.start();
     }
 
-    private void onUpdate() {
+    private void addGamePane() {
+        gamePane.setTranslateX(Consts.GAME_MENU_SPACING);
+        gamePane.setTranslateY(2 * Consts.GAME_MENU_SPACING + 50);
+        gamePane.setMinHeight(Consts.HEIGHT - (3 * Consts.GAME_MENU_SPACING + 120));
+        gamePane.setMinWidth(Consts.WIDTH - gamePane.getTranslateX() - Consts.GAME_MENU_SPACING);
 
+
+        gamePane.setStyle("-fx-background-color: white");
+        getChildren().addAll(gamePane);
+    }
+
+    private void onUpdate() {
+        for (GameObject bullet : bullets) {
+            for (GameObject enemy : enemies) {
+                if (bullet.isColliding(enemy)) {
+                    bullet.setAlive(false);
+                    enemy.setAlive(false);
+                }
+            }
+        }
+
+        bullets.removeIf(GameObject::isDead);
+        enemies.removeIf(GameObject::isDead);
+
+        bullets.forEach(GameObject::update);
+        enemies.forEach(GameObject::update);
+
+        player.update();
+
+        if (Math.random() < 5.02) {
+            System.out.println(gamePane.getHeight() + " " + gamePane.getWidth() + " " + Math.random());
+            //addEnemy(new Enemy(), Math.random() * gamePane.getWidth(), Math.random() * gamePane.getHeight());
+            addEnemy(new Enemy(), Math.random() * 750, Math.random() * 420);
+            //addEnemy(new Enemy(), 780, 450);
+        }
+
+    }
+
+    private void addBullet(Bullet bullet, double x, double y) {
+        bullets.add(bullet);
+        addGameObject(bullet, x, y);
+    }
+
+    private void addEnemy(Enemy enemy, double x, double y) {
+        enemies.add(enemy);
+        addGameObject(enemy, x, y);
+    }
+
+    private void addGameObject(GameObject object, double x, double y) {
+        object.getView().setTranslateX(x);
+        object.getView().setTranslateY(y);
+        gamePane.getChildren().add(object.getView());
     }
 
     private void addBackground() {
@@ -76,12 +130,15 @@ public class GameScreen extends Pane {
         stopwatch = new Stopwatch();
         stopwatch.stop_start();
 
-        menuBox.getChildren().addAll(stopwatch);
+        stopwatch.setTranslateX(Consts.GAME_MENU_SPACING);
+        stopwatch.setTranslateY(Consts.GAME_MENU_SPACING);
+
+        getChildren().addAll(stopwatch);
     }
 
     private void addMenu() {
-        menuBox.setTranslateX(Consts.GAME_MENU_X);
-        menuBox.setTranslateY(Consts.GAME_MENU_Y);
+        menuBox.setTranslateX(Consts.WIDTH / 4);
+        menuBox.setTranslateY(Consts.GAME_MENU_SPACING);
         gameMenuData.forEach(data -> {
             Item item = new Item(data.getKey());
             item.setOnAction(data.getValue());
@@ -94,6 +151,7 @@ public class GameScreen extends Pane {
 
             menuBox.getChildren().addAll(item);
         });
+        getChildren().add(menuBox);
     }
 
     private void startAnimation() {
@@ -115,6 +173,8 @@ public class GameScreen extends Pane {
 
     private void addScore() {
         score = new Score();
-        menuBox.getChildren().addAll(score);
+        score.setTranslateX(Consts.WIDTH - 50);
+        score.setTranslateY(Consts.GAME_MENU_SPACING);
+        getChildren().addAll(score);
     }
 }
