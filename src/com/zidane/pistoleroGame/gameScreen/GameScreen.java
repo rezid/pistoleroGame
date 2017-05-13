@@ -3,6 +3,7 @@ package com.zidane.pistoleroGame.gameScreen;
 import com.zidane.pistoleroGame.GameApp;
 import com.zidane.pistoleroGame.mainMenu.Item;
 import com.zidane.pistoleroGame.util.Consts;
+import javafx.animation.AnimationTimer;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
@@ -17,6 +18,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import javafx.util.Pair;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,10 +26,14 @@ import java.util.List;
  * Created by galax on 12/05/2017.
  */
 public class GameScreen extends Pane {
+    private List<GameObject> bullets = new ArrayList<>();
+    private List<GameObject> enemies = new ArrayList<>();
+    private GameObject player;
+
+
     private Stopwatch stopwatch;
     private Score score;
     private HBox menuBox = new HBox(Consts.GAME_MENU_SPACING);
-
     private List<Pair<String, Runnable>> gameMenuData = Arrays.asList(
             new Pair<String, Runnable>("Pause", () -> {}),
             new Pair<String, Runnable>("Exit to Menu", () -> {
@@ -42,6 +48,18 @@ public class GameScreen extends Pane {
 
         getChildren().add(menuBox);
         startAnimation();
+
+        AnimationTimer timer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                onUpdate();
+            }
+        };
+        timer.start();
+    }
+
+    private void onUpdate() {
+
     }
 
     private void addBackground() {
