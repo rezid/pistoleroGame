@@ -12,6 +12,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -30,6 +31,19 @@ public class GameScreen extends Pane {
     private List<GameObject> enemies = new ArrayList<>();
     private GameObject player;
 
+    public GameObject getPlayer() {
+        return player;
+    }
+
+    private boolean isInPause = false;
+
+    public boolean isInPause() {
+        return isInPause;
+    }
+
+    public void setInPause(boolean inPause) {
+        isInPause = inPause;
+    }
 
     private Stopwatch stopwatch;
     private Pane gamePane = new Pane();
@@ -37,7 +51,10 @@ public class GameScreen extends Pane {
     private HBox menuBox = new HBox(Consts.GAME_MENU_SPACING);
 
     private List<Pair<String, Runnable>> gameMenuData = Arrays.asList(
-            new Pair<String, Runnable>("Pause", () -> {}),
+            new Pair<String, Runnable>("Pause", () -> {
+                setInPause(true);
+                stopwatch.stop_start();
+            }),
             new Pair<String, Runnable>("Exit to Menu", () -> {
                 GameApp.window.setScene(GameApp.menu_scene);})
     );
@@ -50,13 +67,17 @@ public class GameScreen extends Pane {
         addGamePane();
         startAnimation();
 
+        gamePane.setFocusTraversable(true);
         player = new Player();
         player.setVelocity(new Point2D(1, 0));
+
+        addGameObject(player, Consts.WIDTH / 2, Consts.HEIGHT / 2);
 
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                onUpdate();
+                if (!isInPause)
+                    onUpdate();
             }
         };
         timer.start();
@@ -77,8 +98,10 @@ public class GameScreen extends Pane {
         for (GameObject bullet : bullets) {
             for (GameObject enemy : enemies) {
                 if (bullet.isColliding(enemy)) {
+                    score.increment();
                     bullet.setAlive(false);
                     enemy.setAlive(false);
+                    gamePane.getChildren().removeAll(bullet.getView(), enemy.getView());
                 }
             }
         }
@@ -91,18 +114,22 @@ public class GameScreen extends Pane {
 
         player.update();
 
-        if (Math.random() < 5.02) {
-            System.out.println(gamePane.getHeight() + " " + gamePane.getWidth() + " " + Math.random());
-            //addEnemy(new Enemy(), Math.random() * gamePane.getWidth(), Math.random() * gamePane.getHeight());
-            addEnemy(new Enemy(), Math.random() * 750, Math.random() * 420);
-            //addEnemy(new Enemy(), 780, 450);
+        if (Math.random() < 0.02) {
+            addEnemy(new Enemy(), Math.random() * (gamePane.getWidth() - 2 * Consts.ENEMY_CIRCLE_RADIUS), Math.random() * (gamePane.getHeight() - 2 * Consts.ENEMY_CIRCLE_RADIUS));
         }
 
     }
 
-    private void addBullet(Bullet bullet, double x, double y) {
+    public void addBullet(Bullet bullet, double x, double y) {
         bullets.add(bullet);
         addGameObject(bullet, x, y);
+    }
+
+    public void addNewBullet(double x, double y) {
+        Bullet bullet = new Bullet();
+        bullet.setVelocity(player.getVelocity().normalize().multiply(5));
+        addBullet(bullet, x, y);
+
     }
 
     private void addEnemy(Enemy enemy, double x, double y) {

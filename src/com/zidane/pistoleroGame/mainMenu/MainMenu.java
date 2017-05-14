@@ -1,14 +1,22 @@
 package com.zidane.pistoleroGame.mainMenu;
 
 import com.zidane.pistoleroGame.GameApp;
+import com.zidane.pistoleroGame.gameScreen.Bullet;
 import com.zidane.pistoleroGame.gameScreen.GameScreen;
 import com.zidane.pistoleroGame.util.Consts;
+import javafx.animation.AnimationTimer;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -26,18 +34,72 @@ import java.util.List;
  * Created by galax on 12/05/2017.
  */
 public class MainMenu extends Pane {
+    private BooleanProperty leftPressed = new SimpleBooleanProperty();
+    private BooleanProperty rightPressed = new SimpleBooleanProperty();
+    private BooleanProperty spacePressed = new SimpleBooleanProperty();
+    private BooleanBinding anyPressed = leftPressed.or(rightPressed).or(spacePressed);
 
     private List<Pair<String, Runnable>> menuData = Arrays.asList(
             new Pair<String, Runnable>("Start", () -> {
-                GameApp.game_scene = new Scene(new GameScreen());
+                GameApp.gameScreen = new GameScreen();
+                GameApp.game_scene = new Scene(GameApp.gameScreen);
                 GameApp.window.setScene(GameApp.game_scene);
                 GameApp.window.sizeToScene();
+                setControls();
             }),
             new Pair<String, Runnable>("Guide", () -> {}),
             new Pair<String, Runnable>("Game Options", () -> {}),
             new Pair<String, Runnable>("Score", () -> {GameApp.window.setScene(GameApp.end_scene);}),
             new Pair<String, Runnable>("Exit to Desktop", Platform::exit)
     );
+
+    private void setControls() {
+        GameApp.game_scene.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.LEFT) {
+                leftPressed.set(true);
+            }
+            if (e.getCode() == KeyCode.RIGHT) {
+                rightPressed.set(true);
+            }
+            if (e.getCode() == KeyCode.SPACE) {
+                spacePressed.set(true);
+            }
+        });
+
+        GameApp.game_scene.setOnKeyReleased(e -> {
+            if (e.getCode() == KeyCode.LEFT) {
+                leftPressed.set(false);
+            }
+            if (e.getCode() == KeyCode.RIGHT) {
+                rightPressed.set(false);
+            }
+            if (e.getCode() == KeyCode.SPACE) {
+                spacePressed.set(false);
+            }
+        });
+
+        AnimationTimer timer = new AnimationTimer() {
+            @Override
+            public void handle(long timestamp) {
+                if (leftPressed.get())
+                    GameApp.gameScreen.getPlayer().rotateLeft();
+                if (rightPressed.get())
+                    GameApp.gameScreen.getPlayer().rotateRight();
+                if (spacePressed.get())
+                    GameApp.gameScreen.addNewBullet(GameApp.gameScreen.getPlayer().getView().getTranslateX(),
+                            GameApp.gameScreen.getPlayer().getView().getTranslateY());
+            }
+        };
+
+        anyPressed.addListener((obs, wasPressed, isNowPressed) -> {
+            if (isNowPressed) {
+                timer.start();
+            } else {
+                timer.stop();
+            }
+        });
+    }
+
 
 
     private VBox menuBox = new VBox(-5);
