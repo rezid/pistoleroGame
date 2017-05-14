@@ -37,7 +37,11 @@ public class MainMenu extends Pane {
     private BooleanProperty leftPressed = new SimpleBooleanProperty();
     private BooleanProperty rightPressed = new SimpleBooleanProperty();
     private BooleanProperty spacePressed = new SimpleBooleanProperty();
-    private BooleanBinding anyPressed = leftPressed.or(rightPressed).or(spacePressed);
+    private BooleanProperty clickPressed = new SimpleBooleanProperty();
+    private BooleanBinding anyPressed = leftPressed.or(rightPressed).or(spacePressed).or(clickPressed);
+
+    private VBox menuBox = new VBox(-5);
+    private Line line;
 
     private List<Pair<String, Runnable>> menuData = Arrays.asList(
             new Pair<String, Runnable>("Start", () -> {
@@ -52,58 +56,6 @@ public class MainMenu extends Pane {
             new Pair<String, Runnable>("Score", () -> {GameApp.window.setScene(GameApp.end_scene);}),
             new Pair<String, Runnable>("Exit to Desktop", Platform::exit)
     );
-
-    private void setControls() {
-        GameApp.game_scene.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.LEFT) {
-                leftPressed.set(true);
-            }
-            if (e.getCode() == KeyCode.RIGHT) {
-                rightPressed.set(true);
-            }
-            if (e.getCode() == KeyCode.SPACE) {
-                spacePressed.set(true);
-            }
-        });
-
-        GameApp.game_scene.setOnKeyReleased(e -> {
-            if (e.getCode() == KeyCode.LEFT) {
-                leftPressed.set(false);
-            }
-            if (e.getCode() == KeyCode.RIGHT) {
-                rightPressed.set(false);
-            }
-            if (e.getCode() == KeyCode.SPACE) {
-                spacePressed.set(false);
-            }
-        });
-
-        AnimationTimer timer = new AnimationTimer() {
-            @Override
-            public void handle(long timestamp) {
-                if (leftPressed.get())
-                    GameApp.gameScreen.getPlayer().rotateLeft();
-                if (rightPressed.get())
-                    GameApp.gameScreen.getPlayer().rotateRight();
-                if (spacePressed.get())
-                    GameApp.gameScreen.addNewBullet(GameApp.gameScreen.getPlayer().getView().getTranslateX(),
-                            GameApp.gameScreen.getPlayer().getView().getTranslateY());
-            }
-        };
-
-        anyPressed.addListener((obs, wasPressed, isNowPressed) -> {
-            if (isNowPressed) {
-                timer.start();
-            } else {
-                timer.stop();
-            }
-        });
-    }
-
-
-
-    private VBox menuBox = new VBox(-5);
-    private Line line;
 
     public MainMenu() {
         addBackground();
@@ -180,6 +132,61 @@ public class MainMenu extends Pane {
         });
 
         getChildren().add(menuBox);
+    }
+
+    private void setControls() {
+        GameApp.game_scene.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.LEFT) {
+                leftPressed.set(true);
+            }
+            if (e.getCode() == KeyCode.RIGHT) {
+                rightPressed.set(true);
+            }
+            if (e.getCode() == KeyCode.SPACE) {
+                spacePressed.set(true);
+            }
+        });
+
+        GameApp.game_scene.setOnKeyReleased(e -> {
+            if (e.getCode() == KeyCode.LEFT) {
+                leftPressed.set(false);
+            }
+            if (e.getCode() == KeyCode.RIGHT) {
+                rightPressed.set(false);
+            }
+            if (e.getCode() == KeyCode.SPACE) {
+                spacePressed.set(false);
+            }
+        });
+
+        GameApp.game_scene.setOnMousePressed(e -> {
+            clickPressed.set(true);
+        });
+
+        GameApp.game_scene.setOnMouseReleased(e -> {
+            clickPressed.set(false);
+        });
+
+        AnimationTimer timer = new AnimationTimer() {
+            @Override
+            public void handle(long timestamp) {
+                if (leftPressed.get())
+                    GameApp.gameScreen.getPlayer().rotateLeft();
+                if (rightPressed.get())
+                    GameApp.gameScreen.getPlayer().rotateRight();
+                if (spacePressed.get() || clickPressed.get())
+                    GameApp.gameScreen.addNewBullet(GameApp.gameScreen.getPlayer().getView().getTranslateX(),
+                            GameApp.gameScreen.getPlayer().getView().getTranslateY());
+            }
+        };
+
+        anyPressed.addListener((obs, wasPressed, isNowPressed) -> {
+            if (isNowPressed) {
+                timer.start();
+            } else {
+                timer.stop();
+            }
+        });
     }
 
 }
