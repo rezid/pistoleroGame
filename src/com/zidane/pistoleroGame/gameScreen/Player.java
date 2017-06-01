@@ -2,6 +2,7 @@ package com.zidane.pistoleroGame.gameScreen;
 
 import javafx.application.Platform;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 
 /**
@@ -9,6 +10,6 @@ import javafx.scene.shape.Rectangle;
  */
 public class Player extends GameObject{
     public Player() {
-        super(new Rectangle(40, 20, Color.BLUE));
+        super(new Polygon( 10.0, 0.0, -10.0, -10.0, -10.0, 10.0 ));
     }
 }

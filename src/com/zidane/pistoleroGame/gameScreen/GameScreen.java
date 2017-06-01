@@ -10,12 +10,15 @@ import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.util.Duration;
 import javafx.util.Pair;
 
@@ -45,7 +48,7 @@ public class GameScreen extends Pane {
         isInPause = inPause;
     }
 
-    private Stopwatch stopwatch;
+    public Stopwatch stopwatch;
     private Pane gamePane = new Pane();
     private Score score;
     private HBox menuBox = new HBox(Consts.GAME_MENU_SPACING);
@@ -56,7 +59,8 @@ public class GameScreen extends Pane {
                 stopwatch.stop_start();
             }),
             new Pair<String, Runnable>("Exit to Menu", () -> {
-                GameApp.window.setScene(GameApp.menu_scene);})
+                GameApp.window.setScene(GameApp.menu_scene);
+            })
     );
 
     public GameScreen() {
@@ -106,6 +110,22 @@ public class GameScreen extends Pane {
             }
         }
 
+
+        for (int i =0; i < enemies.size(); i++) {
+            if (player.isColliding(enemies.get(i))) {
+                setInPause(true);
+                stopwatch.stop_start();
+            }
+            for (int j = i + 1; j < enemies.size(); j++) {
+                if ( enemies.get(i).isColliding(enemies.get(j))) {
+                    enemies.get(j).setAlive(false);
+                    gamePane.getChildren().removeAll(enemies.get(j).getView());
+                    Point2D p = enemies.get(i).getVelocity();
+                    enemies.get(i).setVelocity(p.normalize().add(Math.random() * 3 - 1.5, Math.random() * 3 ));
+                }
+            }
+        }
+
         bullets.removeIf(GameObject::isDead);
         enemies.removeIf(GameObject::isDead);
 
@@ -114,8 +134,10 @@ public class GameScreen extends Pane {
 
         player.update();
 
-        if (Math.random() < 0.02) {
-            addEnemy(new Enemy(), Math.random() * (gamePane.getWidth() - 2 * Consts.ENEMY_CIRCLE_RADIUS), Math.random() * (gamePane.getHeight() - 2 * Consts.ENEMY_CIRCLE_RADIUS));
+        if (Math.random() < 0.04) {
+            Enemy e = new Enemy();
+            e.setVelocity(new Point2D(0, +1));
+            addEnemy(e, Math.random() * (gamePane.getWidth() - 2 * Consts.ENEMY_CIRCLE_RADIUS), 0);
         }
 
     }
@@ -164,20 +186,22 @@ public class GameScreen extends Pane {
     }
 
     private void addMenu() {
-        menuBox.setTranslateX(Consts.WIDTH / 4);
+        menuBox.setTranslateX(Consts.WIDTH / 3);
         menuBox.setTranslateY(Consts.GAME_MENU_SPACING);
-        gameMenuData.forEach(data -> {
-            Item item = new Item(data.getKey());
-            item.setOnAction(data.getValue());
-            item.setTranslateX(-300);
 
-            Rectangle clip = new Rectangle(300, 30);
-            clip.translateXProperty().bind(item.translateXProperty().negate());
+        Label labelP = new Label("P : Pause");
+        Label labelR = new Label("R : Resume");
+        Label labelQ = new Label("Q : Quite");
 
-            item.setClip(clip);
+        labelP.setFont(Font.loadFont(GameApp.class.getResource("res/Penumbra-HalfSerif-Std_35114.ttf").toExternalForm(), 14));
+        labelP.setTextFill(Color.WHITE);
+        labelQ.setFont(Font.loadFont(GameApp.class.getResource("res/Penumbra-HalfSerif-Std_35114.ttf").toExternalForm(), 14));
+        labelQ.setTextFill(Color.WHITE);
+        labelR.setFont(Font.loadFont(GameApp.class.getResource("res/Penumbra-HalfSerif-Std_35114.ttf").toExternalForm(), 14));
+        labelR.setTextFill(Color.WHITE);
 
-            menuBox.getChildren().addAll(item);
-        });
+        menuBox.getChildren().addAll(labelP, labelQ, labelR);
+
         getChildren().add(menuBox);
     }
 
@@ -205,3 +229,5 @@ public class GameScreen extends Pane {
         getChildren().addAll(score);
     }
 }
+
+

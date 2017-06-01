@@ -8,6 +8,6 @@ import javafx.scene.shape.Circle;
  */
 public class Bullet extends GameObject{
     public Bullet() {
-        super(new Circle(5, 5, 5, Color.BROWN));
+        super(new Circle(2, 2, 2, Color.BLACK));
     }
 }

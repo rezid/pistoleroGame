@@ -145,6 +145,14 @@ public class MainMenu extends Pane {
             if (e.getCode() == KeyCode.SPACE) {
                 spacePressed.set(true);
             }
+            if (e.getCode() == KeyCode.P) {
+                GameApp.gameScreen.setInPause(true);
+                GameApp.gameScreen.stopwatch.stop_start();
+            }
+            if (e.getCode() == KeyCode.R) {
+                GameApp.gameScreen.setInPause(false);
+                GameApp.gameScreen.stopwatch.stop_start();
+            }
         });
 
         GameApp.game_scene.setOnKeyReleased(e -> {
@@ -167,16 +175,20 @@ public class MainMenu extends Pane {
             clickPressed.set(false);
         });
 
+
+
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long timestamp) {
-                if (leftPressed.get())
+                if (leftPressed.get() && !GameApp.gameScreen.isInPause())
                     GameApp.gameScreen.getPlayer().rotateLeft();
-                if (rightPressed.get())
+                if (rightPressed.get() && !GameApp.gameScreen.isInPause())
                     GameApp.gameScreen.getPlayer().rotateRight();
-                if (spacePressed.get() || clickPressed.get())
+                if (spacePressed.get() || clickPressed.get()) {
+
                     GameApp.gameScreen.addNewBullet(GameApp.gameScreen.getPlayer().getView().getTranslateX(),
                             GameApp.gameScreen.getPlayer().getView().getTranslateY());
+                }
             }
         };
 

@@ -32,7 +32,7 @@ public class StopwatchWorker extends Task<Void> {
                 long millis = Math.max(0, d.toMillis() - d.getSeconds() * 1000);
 
                 updateMessage(String.format("%02d", hours) + ":" + String.format("%02d", minutes) + ":" + String.format("%02d", seconds) + "." + String.format("%03d", millis));}
-            Thread.sleep(3);
+                Thread.sleep(3);
         }
         return null;
     }
